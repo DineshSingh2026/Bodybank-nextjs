@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Nest app + compiled output + legacy CommonJS (linted by backend/eslint if needed)
+    "backend/**",
+    // Copied legacy static scripts (not authored in this repo as TS)
+    "public/**/*.js",
   ]),
 ]);
 

@@ -108,3 +108,13 @@ The flow covers sign-up → approval → login → workouts → **public audit +
    ```
 
 Playwright starts **Next on :3001** (or reuses it) with `LEGACY_ORIGIN=http://127.0.0.1:3000` and runs `e2e/audit-form-website.spec.ts`: opens **Start Your Body Audit**, fills the modal, asserts `POST /api/audit` **200** and the success popup.
+
+### One-shot commands (this repo)
+
+| Script | Needs Express **:3000**? | What it runs |
+|--------|---------------------------|----------------|
+| `npm run test:all` | **Yes** (for Playwright) | ESLint → Next `build` → Playwright → Nest `jest --passWithNoTests` → Nest e2e Jest |
+| `npm run test:legacy` | **Yes** | Sibling `../bodybank`: `npm test` + `tests/api-progress-test.js` |
+| `npm run test:full` | **Yes** | `test:legacy` then `test:all` |
+
+Start legacy BodyBank first, e.g. `PORT=3000 node server.js` in the **bodybank** folder (see bodybank `.env` for `DATABASE_URL`).
