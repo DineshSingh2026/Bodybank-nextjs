@@ -27,17 +27,18 @@ This repository is the **new** stack for [Bodybank-nextjs](https://github.com/Di
 | Nest `backend` | 3002 | Migrated routes + proxy to 3000 |
 | Next           | 3001 | Static UI + rewrites to 3002 |
 
-1. Start **legacy** BodyBank Express on **3000**.
-2. In `backend/`: copy `backend/.env.example` → `backend/.env`, set `DATABASE_URL`, `JWT_SECRET` (must match legacy), and:
+1. Install API deps once: `cd backend && npm install` (root `npm install` is only for Next).
+2. Start **legacy** BodyBank Express on **3000**.
+3. In `backend/`: copy `backend/.env.example` → `backend/.env`, set `DATABASE_URL`, `JWT_SECRET` (must match legacy), and:
 
    ```env
    LEGACY_FALLBACK_ORIGIN=http://localhost:3000
    PORT=3002
    ```
 
-3. From repo root: `npm run dev:api` (or `cd backend && npm run start:dev`).
-4. In repo root `.env.local`: `LEGACY_ORIGIN=http://localhost:3002`
-5. `npm run dev:proxy` → open `http://localhost:3001`.
+4. From repo root: `npm run dev:api` (or `cd backend && npm run start:dev`).
+5. In repo root `.env.local`: `LEGACY_ORIGIN=http://localhost:3002`
+6. `npm run dev:proxy` → open `http://localhost:3001`.
 
 ### Simpler dev (Next → Express only)
 
