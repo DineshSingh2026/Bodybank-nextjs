@@ -39,35 +39,7 @@ async function bootstrap() {
     res.json({ google_client_id: googleId });
   });
 
-  server.get('/api/health', async (_req: Request, res: Response) => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const db = require(legacyRuntimePath('config', 'db')) as {
-        queryOne: (sql: string, params?: unknown[]) => Promise<unknown>;
-      };
-      const ADMIN_EMAIL =
-        process.env.ADMIN_EMAIL || 'admin@bodybank.fit';
-      const SUPERADMIN_EMAIL =
-        process.env.SUPERADMIN_EMAIL || 'superadmin@bodybank.fit';
-      const adminCheck = await db.queryOne(
-        "SELECT email FROM users WHERE role='admin' LIMIT 1",
-      );
-      const superadminCheck = await db.queryOne(
-        "SELECT email FROM users WHERE role='superadmin' LIMIT 1",
-      );
-      res.json({
-        ok: true,
-        db: 'connected',
-        admin_email: ADMIN_EMAIL,
-        admin_exists: !!adminCheck,
-        superadmin_email: SUPERADMIN_EMAIL,
-        superadmin_exists: !!superadminCheck,
-      });
-    } catch (e) {
-      const err = e as Error;
-      res.status(500).json({ ok: false, db: 'error', error: err.message });
-    }
-  });
+  // GET /api/health is served by Nest + Prisma (Phase 3).
 
   // Migrated first-class route: same Express router as the legacy app
   // eslint-disable-next-line @typescript-eslint/no-require-imports

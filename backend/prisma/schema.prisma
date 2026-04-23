@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model daily_checkins {
+  id           String    @id
+  user_id      String
+  checkin_date DateTime  @db.Date
+  steps        Int?
+  water_ml     Int?
+  protein_g    Int?
+  sleep_hours  Float?    @db.Real
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+
+  @@unique([user_id, checkin_date], map: "idx_daily_checkins_user_date")
+}
+
+model progress_logs {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           String
+  weight            Decimal?  @db.Decimal(5, 2)
+  body_fat          Decimal?  @db.Decimal(5, 2)
+  calories_intake   Int?
+  protein_intake    Int?
+  workout_completed Boolean?  @default(false)
+  workout_type      String?   @db.VarChar(100)
+  strength_bench    Decimal?  @db.Decimal(6, 2)
+  strength_squat    Decimal?  @db.Decimal(6, 2)
+  strength_deadlift Decimal?  @db.Decimal(6, 2)
+  sleep_hours       Decimal?  @db.Decimal(3, 1)
+  water_intake      Decimal?  @db.Decimal(4, 1)
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  users             users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([created_at], map: "idx_progress_logs_created_at")
+  @@index([user_id], map: "idx_progress_logs_user_id")
+}
+
+model sunday_checkins {
+  id                        String    @id
+  user_id                   String?
+  full_name                 String
+  reply_email               String
+  plan                      String?   @default("")
+  current_weight_waist_week String?   @default("")
+  last_week_weight_waist    String?   @default("")
+  total_weight_loss         String?   @default("")
+  training_go               String?   @default("")
+  nutrition_go              String?   @default("")
+  sleep                     String?   @default("")
+  occupation_stress         String?   @default("")
+  other_stress              String?   @default("")
+  differences_felt          String?   @default("")
+  achievements              String?   @default("")
+  improve_next_week         String?   @default("")
+  questions                 String?   @default("")
+  body_fat_percent          Float?    @db.Real
+  created_at                DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model user_goals {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id               String
+  target_weight         Decimal?  @db.Decimal
+  target_body_fat       Decimal?  @db.Decimal
+  weekly_workout_target Int?
+  created_at            DateTime? @default(now()) @db.Timestamp(6)
+  users                 users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model users {
+  id                             String          @id
+  email                          String          @unique
+  password                       String
+  first_name                     String?         @default("")
+  last_name                      String?         @default("")
+  phone                          String?         @default("")
+  country                        String?         @default("")
+  state_province                 String?         @default("")
+  city                           String?         @default("")
+  dob                            DateTime?       @db.Date
+  gender                         String?         @default("")
+  timezone                       String?         @default("")
+  profile_picture                String?         @default("")
+  role                           String?         @default("user")
+  approval_status                String?         @default("approved")
+  created_at                     DateTime?       @default(now()) @db.Timestamp(6)
+  suspended                      Boolean?        @default(false)
+  height_cm                      Int?
+  goal_type                      String?         @default("")
+  primary_training_days_per_week Int?
+  diet_type                      String?         @default("")
+  injury_limitations             String?         @default("")
+  stress_level_baseline          Int?
+  leaderboard_opt_in             Boolean?        @default(false)
+  leaderboard_display_name       String?         @default("")
+  leaderboard_opt_in_at          DateTime?       @db.Timestamptz(6)
+  focus_wheel_last_spin_date     String?         @default("")
+  focus_wheel_last_label         String?         @default("")
+  leaderboard_public_program     Boolean?        @default(true)
+  leaderboard_public_global      Boolean?        @default(false)
+  progress_logs                  progress_logs[]
+  user_goals                     user_goals[]
+}
+
+model workout_logs {
+  id                String    @id
+  user_id           String
+  workout_name      String    @default("")
+  duration_seconds  Int?      @default(0)
+  feedback          String?   @default("")
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  session_date      DateTime? @db.Date
+  workout_type      String?
+  session_lifts     Json?
+  bench_kg          Float?    @db.Real
+  squat_kg          Float?    @db.Real
+  deadlift_kg       Float?    @db.Real
+  weight_kg         Float?    @db.Real
+  body_fat_percent  Float?    @db.Real
+  calories          Int?
+  protein_g         Int?
+  water_liters      Float?    @db.Real
+  sleep_hrs         Float?    @db.Real
+  workout_completed Boolean?
+  intensity         String?
+  energy_level      String?
+}
