@@ -81,3 +81,30 @@ If you are not running Nest yet, keep Phase 1 setup: `LEGACY_ORIGIN=http://local
 | `npm run lint`    | Next ESLint                    |
 
 Nest-only scripts: `cd backend && npm run start:dev` / `npm run build` / `npm test` / `npm run db:bootstrap` / `npm run prisma:pull`.
+
+## Testing (local)
+
+### API E2E (legacy Express)
+
+In the **bodybank** repo, with PostgreSQL reachable and **BodyBank server listening on port 3000** (`DATABASE_URL` in `.env` pointing at your dev DB, e.g. `bodybank_nextjs`):
+
+```bash
+cd ../bodybank   # or path to your legacy app
+npm test         # ensure-password-resets + tests/e2e-flow.js
+```
+
+The flow covers sign-up → approval → login → workouts → **public audit + part2** → admin lists → superadmin dashboard → re-signup after reject.  
+`tests/e2e-flow.js` includes `height_cm` and geo fields required by current signup validation.
+
+### Browser E2E (Next.js site → API)
+
+1. Start **Express** on **:3000** (same as above).
+2. From this repo root:
+
+   ```bash
+   npm install
+   npx playwright install chromium   # once
+   npm run test:e2e
+   ```
+
+Playwright starts **Next on :3001** (or reuses it) with `LEGACY_ORIGIN=http://127.0.0.1:3000` and runs `e2e/audit-form-website.spec.ts`: opens **Start Your Body Audit**, fills the modal, asserts `POST /api/audit` **200** and the success popup.
