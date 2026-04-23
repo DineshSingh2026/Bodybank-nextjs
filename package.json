@@ -5,8 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "dev:proxy": "next dev -p 3001",
+    "dev:api": "npm run start:dev --prefix backend",
     "build": "next build",
+    "build:api": "npm run build --prefix backend",
     "start": "next start",
+    "start:api": "npm run start:prod --prefix backend",
     "lint": "eslint"
   },
   "dependencies": {

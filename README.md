@@ -1,43 +1,62 @@
-# BodyBank — Next.js frontend (migration)
+# BodyBank — Next.js + NestJS (migration)
 
-This repository is the **new** Next.js shell for [Bodybank-nextjs](https://github.com/DineshSingh2026/Bodybank-nextjs). The original Express + `public/` app stays untouched in its own repo.
+This repository is the **new** stack for [Bodybank-nextjs](https://github.com/DineshSingh2026/Bodybank-nextjs). The original Express + `public/` app stays **untouched** in its own repo.
 
-## Phase 1 (current)
+## Phase 1 — Next.js shell
 
 - **App Router** (`app/`) with **no Tailwind** and minimal global CSS (legacy pages ship their own styles).
 - **`public/`** — static HTML, CSS, JS, and assets copied from the legacy app for pixel parity.
 - **`/`** — middleware rewrites to `public/index.html` so the URL stays `/` while the legacy document is served.
-- **API / uploads** — when `LEGACY_ORIGIN` is set, `next.config.ts` rewrites `/api/*` and `/uploads/*` to that origin (run the legacy server for auth, forms, and uploads during development).
+- **API / uploads** — when `LEGACY_ORIGIN` is set in `.env.local`, `next.config.ts` rewrites `/api/*` and `/uploads/*` to that origin.
 
-## Local development
+## Phase 2 — NestJS API (incremental)
 
-1. Start the **legacy** BodyBank server on port **3000** (or any port; match it below).
-2. In this repo:
+- **`backend/`** — Nest 11 + Express hybrid (`backend/src/main.ts`).
+- **Migrated routes (same handlers as legacy):**
+  - `GET /health`
+  - `GET /api/config`
+  - `GET /api/health`
+  - `GET|POST /api/progress/*` — Express router from `backend/legacy-runtime/` (verbatim copies of `config/db.js`, `middleware/auth.js`, `routes/progress.js`, `controllers/progressController.js`, and the `progress` + `streak` + `goal` + `insight` + `userEmail` services).
+- **Optional fallback proxy** — set `LEGACY_FALLBACK_ORIGIN` in `backend/.env` to your **legacy Express** URL. Any request not handled above is forwarded so you can run **Nest in front of Express** during migration.
 
-   ```bash
-   npm install
-   cp .env.example .env.local
+### Local development (full chain)
+
+| Process        | Port | Role |
+| -------------- | ---- | ---- |
+| Legacy Express | 3000 | Database of record + unmigrated routes |
+| Nest `backend` | 3002 | Migrated routes + proxy to 3000 |
+| Next           | 3001 | Static UI + rewrites to 3002 |
+
+1. Start **legacy** BodyBank Express on **3000**.
+2. In `backend/`: copy `backend/.env.example` → `backend/.env`, set `DATABASE_URL`, `JWT_SECRET` (must match legacy), and:
+
+   ```env
+   LEGACY_FALLBACK_ORIGIN=http://localhost:3000
+   PORT=3002
    ```
 
-   Set `LEGACY_ORIGIN=http://localhost:3000` in `.env.local`.
+3. From repo root: `npm run dev:api` (or `cd backend && npm run start:dev`).
+4. In repo root `.env.local`: `LEGACY_ORIGIN=http://localhost:3002`
+5. `npm run dev:proxy` → open `http://localhost:3001`.
 
-3. Start Next on another port so it does not bind the same port as Express:
+### Simpler dev (Next → Express only)
 
-   ```bash
-   npm run dev -- -p 3001
-   ```
-
-4. Open `http://localhost:3001` — landing page should match legacy; API calls from the browser go to the same host and are rewritten to the legacy server.
+If you are not running Nest yet, keep Phase 1 setup: `LEGACY_ORIGIN=http://localhost:3000` and skip `backend/`.
 
 ## Production (later)
 
-- Deploy Next with `LEGACY_ORIGIN` pointing at your API host, or remove rewrites once the API is migrated to NestJS in this or a sibling repo.
+- Deploy Next with `LEGACY_ORIGIN` pointing at your API (Nest only, or Nest+proxy, or monolith until cutover).
 
-## Scripts
+## Scripts (root)
 
-| Command        | Description           |
-| -------------- | --------------------- |
-| `npm run dev`  | Next dev server       |
-| `npm run build`| Production build      |
-| `npm run start`| Production server     |
-| `npm run lint` | ESLint                |
+| Command           | Description                    |
+| ----------------- | ------------------------------ |
+| `npm run dev`     | Next dev server                |
+| `npm run dev:proxy` | Next on port 3001           |
+| `npm run dev:api` | Nest backend watch (port from `backend/.env`) |
+| `npm run build`   | Next production build          |
+| `npm run build:api` | Nest production build       |
+| `npm run start:api` | Nest `node dist/main`       |
+| `npm run lint`    | Next ESLint                    |
+
+Nest-only scripts: `cd backend && npm run start:dev` / `npm run build` / `npm test`.
